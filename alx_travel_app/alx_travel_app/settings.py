@@ -1,11 +1,15 @@
 """
-Django Settings Configuration for CRM Cron Jobs
-Add these configurations to your crm/settings.py file
+Django settings for alx_travel_app project.
 """
+from pathlib import Path
 
-# ============================================================================
-# INSTALLED APPS - Add django_crontab to your INSTALLED_APPS
-# ============================================================================
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+SECRET_KEY = 'django-insecure-cpi!rrk*k#(gddin#iacxu6gwhg)v+kg-^)@o@bm8e=$_hxquy'
+
+DEBUG = True
+
+ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -15,142 +19,75 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Third-party apps
-    'graphene_django',
-    'django_crontab',  # <-- Add this for django-crontab support
-    'django_celery_beat',  # <-- Add this for Celery Beat support
+    'rest_framework',
+    'corsheaders',
+    'drf_yasg',
     
-    # Your apps
-    'crm',
+    'alx_travel_app.listings',
 ]
 
-# ============================================================================
-# GRAPHENE CONFIGURATION - For GraphQL support
-# ============================================================================
-
-GRAPHENE = {
-    'SCHEMA': 'crm.schema.schema',
-    'MIDDLEWARE': [
-        'graphene_django.debug.DjangoDebugMiddleware',
-    ],
-}
-
-# ============================================================================
-# CRON JOBS CONFIGURATION - Define all scheduled tasks
-# ============================================================================
-
-CRONJOBS = [
-    # Task 2: Heartbeat logger - runs every 5 minutes
-    # Cron format: */5 * * * * = every 5 minutes
-    ('*/5 * * * *', 'crm.cron.log_crm_heartbeat'),
-    
-    # Task 3: Update low stock products - runs every 12 hours
-    # Cron format: 0 */12 * * * = every 12 hours (at :00 minutes)
-    ('0 */12 * * *', 'crm.cron.update_low_stock'),
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# ============================================================================
-# CRONTAB ADDITIONAL SETTINGS (Optional but recommended)
-# ============================================================================
+ROOT_URLCONF = 'alx_travel_app.urls'
 
-# Lock jobs to prevent overlapping executions
-CRONTAB_LOCK_JOBS = True
-
-# Command prefix (useful if you need to activate virtual environment)
-# CRONTAB_COMMAND_PREFIX = 'source /path/to/venv/bin/activate && '
-
-# Specify the command suffix (useful for logging)
-CRONTAB_COMMAND_SUFFIX = '>> /tmp/django_cron.log 2>&1'
-
-# ============================================================================
-# LOGGING CONFIGURATION (Optional but recommended for debugging)
-# ============================================================================
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
         },
     },
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': '/tmp/crm_django.log',
-            'formatter': 'verbose',
-        },
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'loggers': {
-        'crm': {
-            'handlers': ['file', 'console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'django_crontab': {
-            'handlers': ['file', 'console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-    },
+]
+
+WSGI_APPLICATION = 'alx_travel_app.wsgi.application'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
-# ============================================================================
-# TIMEZONE SETTINGS (Important for cron jobs)
-# ============================================================================
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
 
-# Make sure you have the correct timezone set
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
 USE_TZ = True
-TIME_ZONE = 'UTC'  # Change this to your timezone, e.g., 'America/New_York'
 
-# ============================================================================
-# CELERY CONFIGURATION - For asynchronous task processing
-# ============================================================================
+STATIC_URL = 'static/'
 
-# Celery Configuration Options
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_ACCEPT_CONTENT = ['application/json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Celery Beat Schedule
-from celery.schedules import crontab
+CORS_ALLOW_ALL_ORIGINS = True
 
-CELERY_BEAT_SCHEDULE = {
-    'generate-crm-report': {
-        'task': 'crm.tasks.generate_crm_report',
-        'schedule': crontab(day_of_week='mon', hour=6, minute=0),
-    },
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ]
 }
 
-# ============================================================================
-# INSTRUCTIONS FOR USING DJANGO-CRONTAB
-# ============================================================================
-
-"""
-After adding these settings, run the following commands:
-
-1. Add cron jobs to system crontab:
-   python manage.py crontab add
-
-2. Show currently active cron jobs:
-   python manage.py crontab show
-
-3. Remove all cron jobs from system crontab:
-   python manage.py crontab remove
-
-4. Test individual cron functions manually:
-   python manage.py shell
-   >>> from crm.cron import log_crm_heartbeat, update_low_stock
-   >>> log_crm_heartbeat()
-   >>> update_low_stock()
-"""
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,
+}
